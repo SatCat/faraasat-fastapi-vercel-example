@@ -31,7 +31,7 @@ async def r_add(request: Request):
     if 'add' in params:
         r.lpush('list_val', time_str+' (GET) '+str(params['add']))   # insert at list begin
         r.ltrim('list_val', 0, 37)                 # save only first x elements
-    return {"redis_values": [i.decode("utf-8") for i in r.lrange('list_val',0,21)] }    
+    return {"redis_values": [i.decode("utf-8") for i in r.lrange('list_val', 0, 38)] }    
 
 @app.post("/r")   # POST
 async def r_post_add(request: Request):
@@ -40,7 +40,7 @@ async def r_post_add(request: Request):
         add_value = request.headers.get('add')
         r.lpush('list_val', time_str+' (POST) '+str(add_value))         # insert at list begin
         r.ltrim('list_val', 0, 37)                  # save only first x elements
-    return {"redis_values": [i.decode("utf-8") for i in r.lrange('list_val',0,21)] }    
+    return {"redis_values": [i.decode("utf-8") for i in r.lrange('list_val', 0, 38)] }    
 
 
 @app.get("/html", response_class=HTMLResponse)
