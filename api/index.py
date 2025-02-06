@@ -30,7 +30,7 @@ async def r_add(request: Request):
     time_str = format(datetime.utcnow()+timedelta(hours=11))+" GMT+11"
     if 'add' in params:
         r.lpush('list_val', time_str+' (GET) '+str(params['add']))   # insert at list begin
-        r.ltrim('list_val', 0, 20)                 # save only first x elements
+        r.ltrim('list_val', 0, 37)                 # save only first x elements
     return {"redis_values": [i.decode("utf-8") for i in r.lrange('list_val',0,21)] }    
 
 @app.post("/r")   # POST
@@ -39,7 +39,7 @@ async def r_post_add(request: Request):
         time_str = format(datetime.utcnow()+timedelta(hours=11))+" GMT+11"
         add_value = request.headers.get('add')
         r.lpush('list_val', time_str+' (POST) '+str(add_value))         # insert at list begin
-        r.ltrim('list_val', 0, 20)                  # save only first x elements
+        r.ltrim('list_val', 0, 37)                  # save only first x elements
     return {"redis_values": [i.decode("utf-8") for i in r.lrange('list_val',0,21)] }    
 
 
