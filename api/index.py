@@ -15,36 +15,59 @@ KV_PORT = os.environ.get('KV_PORT')
 r = redis.Redis(
     host=KV_HOST,
     port=KV_PORT,
-    username=KV_USERNAME, 
+    username=KV_USERNAME,
     password=KV_PASS,
-    ssl=True
+    ssl=True,
+    decode_responses=True 
 )
 
 @app.get("/")
 async def root():
-    return {"GMT+11 time": format(datetime.utcnow()+timedelta(hours=11))}    # make GMT+11
+    return {"GMT+11 time": format(datetime.utcnow()+timedelta(hours=11))}
 
-@app.get("/r")   # GET  <host>/r?add=value to add
+@app.get("/r")   # GET
 async def r_add(request: Request):
     time_str = format(datetime.utcnow()+timedelta(hours=11))+" GMT+11"
     params = request.query_params
+    
     if 'add' in params:
-        r.lpush('list_val', time_str+' (GET) '+str(params['add']))   # insert at list begin
-        r.ltrim('list_val', 0, 37)                 # save only first x elements
-    return {"redis_values": [i.decode("utf-8") for i in r.lrange('list_val', 0, 38)] }    
+        try:
+            r.lpush('list_val', time_str+' (GET) '+str(params['add']))
+            r.ltrim('list_val', 0, 37)
+        except redis.exceptions.ConnectionError:
+            return {"error": "Redis Connection failed. Check Vercel KV linking."}
+
+    try:
+        values = r.lrange('list_val', 0, 38)
+    except redis.exceptions.ConnectionError:
+        return {"error": "Redis Connection failed"}
+
+    safe_values = values if values is not None else []
+    return {"redis_values": safe_values} 
 
 @app.post("/r")   # POST
 async def r_post_add(request: Request):
     time_str = format(datetime.utcnow()+timedelta(hours=11))+" GMT+11"
+    
     if 'add' in request.headers:
         add_value = request.headers.get('add')
-        r.lpush('list_val', time_str+' (POST) '+str(add_value))         # insert at list begin
-        r.ltrim('list_val', 0, 37)                  # save only first x elements
-    return {"redis_values": [i.decode("utf-8") for i in r.lrange('list_val', 0, 38)] }    
+        try:
+            r.lpush('list_val', time_str+' (POST) '+str(add_value))
+            r.ltrim('list_val', 0, 37)
+        except redis.exceptions.ConnectionError:
+            return {"error": "Redis Connection failed"}
+            
+    try:
+        values = r.lrange('list_val', 0, 38)
+    except redis.exceptions.ConnectionError:
+        return {"error": "Redis Connection failed"}
+
+    safe_values = values if values is not None else []
+    return {"redis_values": safe_values }
 
 
 @app.get("/html", response_class=HTMLResponse)
-async def root():
+async def root_html():
     return """
     <html>
         <head><title>Some HTML in here</title> </head>
