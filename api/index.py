@@ -33,12 +33,12 @@ async def r_add(request: Request):
     if 'add' in params:
         try:
             r.lpush('list_val', time_str+' (GET) '+str(params['add']))
-            r.ltrim('list_val', 0, 37)
+            r.ltrim('list_val', 0, 67)
         except redis.exceptions.ConnectionError:
             return {"error": "Redis Connection failed. Check Vercel KV linking."}
 
     try:
-        values = r.lrange('list_val', 0, 38)
+        values = r.lrange('list_val', 0, 68)
     except redis.exceptions.ConnectionError:
         return {"error": "Redis Connection failed"}
 
@@ -53,12 +53,12 @@ async def r_post_add(request: Request):
         add_value = request.headers.get('add')
         try:
             r.lpush('list_val', time_str+' (POST) '+str(add_value))
-            r.ltrim('list_val', 0, 37)
+            r.ltrim('list_val', 0, 67)
         except redis.exceptions.ConnectionError:
             return {"error": "Redis Connection failed"}
             
     try:
-        values = r.lrange('list_val', 0, 38)
+        values = r.lrange('list_val', 0, 68)
     except redis.exceptions.ConnectionError:
         return {"error": "Redis Connection failed"}
 
